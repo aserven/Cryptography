@@ -34,3 +34,21 @@ tree source code:
 
 ```
 
+Encrypting Decrypting
+
+AES 128 block  operating with CBC chiper block chaining  with key 16 bytes
+
+
+padding pcks7
+
+MODULES:
+
+* __crypt__ : encrypt and decrypt functionalities
+* __keys__ : generators of keys RSA and eliptic
+* __signature__ : Methods to sign and authenticate
+* __main__ : Main program 
+
+- _system_ : 
+- _inout_ : Package to read and write files
+
+

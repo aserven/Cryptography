@@ -8,10 +8,11 @@ package main
  */
  func encrypt(src, key []byte) []byte {
 
-    var newBlock cipher.Block
-    var wrong error
+    //var newBlock cipher.Block
+    //var wrong error
     
-    NewCipher(key)
+    //NewCipher(key)
+    return make([]byte ,10)
 
  }
 
