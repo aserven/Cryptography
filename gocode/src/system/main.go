@@ -17,11 +17,11 @@ func main() {
     encPtr := flag.Bool("e", false, "Tell the program to encrypt the file")
     decPtr := flag.Bool("d", false, "Tell the program to decrypt the file")
 
-//Once all flags are declared, call flag.Parse() to execute the command-line parsing.
+    //Once all flags are declared, call flag.Parse() to execute the command-line parsing.
     flag.Parse()
 
     var incorrect bool = *filePtr == "FILE" && *keyPtr == "KEY" && len(flag.Args()) == 0
-    
+
     if (*encPtr && *decPtr) || (!*encPtr && !*decPtr) || incorrect {
     flag.Usage()
     os.Exit(0)
