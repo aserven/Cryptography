@@ -38,11 +38,11 @@ tree structure of the go project:
 
 USAGE:
 Usage of system:
-  -d=false: Tell the program to decrypt the file
-  -e=false: Tell the program to encrypt the file
-  -file="FILE": File to encrypt/decrypt
-  -key="KEY": Key to encrypt/decrypt
-  -name="NAME": Name of the file to write
+  - d=false: Tell the program to decrypt the file
+  - e=false: Tell the program to encrypt the file
+  - file="FILE": File to encrypt/decrypt
+  - key="KEY": Key to encrypt/decrypt
+  - name="NAME": Name of the file to write
 
 
 Encrypting Decrypting
