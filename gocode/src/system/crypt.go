@@ -3,7 +3,6 @@ package main
 import (
     "fmt"
     "io"
-    "inout"
     "crypto/aes"
     "crypto/cipher"
     "crypto/rand"
@@ -61,13 +60,10 @@ func pkcs7UNPAD(file []byte, blocksize int) []byte {
  * Given a file and a key, returns that file encrypted.
  * Using AES algorithm with 128 bits block size and CBC operator.
  */
-func encrypt(srcName, keyName, outName string) {
+func encrypt(file, key []byte) []byte {
 
-    
-    key := inout.ReadFile(keyName) //[]byte("example key 1234")
-    plaintext := inout.ReadFile(srcName) //[]byte("exampleplaintext")
 
-    plaintext = pkcs7PAD(plaintext,aes.BlockSize)
+    var plaintext []byte = pkcs7PAD(file,aes.BlockSize)
 
     fmt.Printf("To encrypt > %# x\n %# x\n", plaintext[:20], plaintext[len(plaintext)-20:])
 
@@ -101,9 +97,7 @@ func encrypt(srcName, keyName, outName string) {
     // (i.e. by using crypto/hmac) as well as being encrypted in order to
     // be secure.
 
-    inout.WriteFile(ciphertext, outName)
-
-    fmt.Printf("Encrypted %# x\n %# x\n", ciphertext[:20], ciphertext[len(ciphertext)-20:])
+    return ciphertext
 }
 
 
@@ -112,13 +106,12 @@ func encrypt(srcName, keyName, outName string) {
  * Given an encrypted file and a key, returns that file decrypted.
  * Using AES algorithm with 128 bits with CBC operator .
  */
-func decrypt(srcName, keyName, outName string) {
+func decrypt(file, key []byte) []byte {
  	//key := []byte("example key 1234")
     //ciphertext2, _ := hex.DecodeString("f363f3ccdcb12bb883abf484ba77d9cd7d32b5baecb3d4b1b3e0e4beffdb3ded")
 
-    //ciphertext2 := ciphertext;
-    ciphertext2 := inout.ReadFile(srcName);
-    key := inout.ReadFile(keyName) 
+    ciphertext2 := file;
+    
     //fmt.Printf("To decrypt %# x\n", ciphertext2)
 
     iv2 := ciphertext2[:aes.BlockSize]
@@ -131,14 +124,14 @@ func decrypt(srcName, keyName, outName string) {
     // The IV needs to be unique, but not secure. Therefore it's common to
     // include it at the beginning of the ciphertext2.
     if len(ciphertext2) < aes.BlockSize {
-        panic("Ciphertext2 too short")
+        panic("Ciphertext too short")
     }
     //iv := ciphertext2[:aes.BlockSize]
     ciphertext2 = ciphertext2[aes.BlockSize:]
 
     // CBC mode always works in whole blocks.
     if len(ciphertext2)%aes.BlockSize != 0 {
-        panic("Ciphertext2 is not a multiple of the block size")
+        panic("Ciphertext is not a multiple of the block size")
     }
 
     mode2 := cipher.NewCBCDecrypter(block2, iv2)
@@ -157,8 +150,7 @@ func decrypt(srcName, keyName, outName string) {
     fmt.Printf("Decrypted: %# x\n %# x\n", ciphertext2[:20], ciphertext2[len(ciphertext2)-20:])
 
     decrypted := pkcs7UNPAD(ciphertext2,aes.BlockSize)
-    fmt.Printf("%# x\n", decrypted[len(decrypted)-20:])
 
-    // inout.WriteFile(ciphertext2, strings.TrimSuffix(fileName,".enc"))
-    inout.WriteFile(ciphertext2, outName)
+    return decrypted
+    
 }
