@@ -65,3 +65,11 @@ MODULES:
 - _inout_ : Package to read and write files
 
 
+Generating RSA key options: [n] number of bytes
+
+* public key: {m, e}
+* private key: {m,e,d,p,q,dp,dq,Q}
+
+_(In PEM format)_
+
+
