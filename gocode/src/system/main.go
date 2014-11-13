@@ -25,14 +25,15 @@ func main() {
     encPtr := flag.Bool("e", false, "Tell the program to encrypt the file")
     decPtr := flag.Bool("d", false, "Tell the program to decrypt the file")
     randKeyPtr := flag.Bool("k", false, "Generates a random key")
+    rsaGenPtr := flag.Bool("gen", false, "Tell to generate")
     sizePtr := flag.Int("size", 16, "Generates a random key of n bytes")
 
     //Once all flags are declared, call flag.Parse() to execute the command-line parsing.
     flag.Parse()
 
-    var incorrect bool = !*randKeyPtr && *filePtr == "FILE" && *keyPtr == "KEY" && len(flag.Args()) == 0
+    var incorrect bool = !*rsaGenPtr && !*randKeyPtr && *filePtr == "FILE" && *keyPtr == "KEY" && len(flag.Args()) == 0
 
-    if (*encPtr && *decPtr) || (!*encPtr && !*decPtr && !*randKeyPtr) || incorrect {
+    if (*encPtr && *decPtr) || (!*rsaGenPtr && !*encPtr && !*decPtr && !*randKeyPtr) || incorrect {
         flag.Usage()
         os.Exit(0)
     }
@@ -77,6 +78,10 @@ func main() {
         var newKey []byte = randomKey(*sizePtr)
         inout.WriteFile(newKey,outputFile)
         fmt.Printf("Key generated: %# x\n", newKey)
-    } 
+
+    } else if *rsaGenPtr {
+
+        RSAkey(*rsaPtr)
+    }
 
 }
