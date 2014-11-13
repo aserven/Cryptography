@@ -12,6 +12,16 @@ Instal·lació: (Versió usada: 1.3.3)
 GOPATH="Your path where you want the code to be stored"
 
 
+comands to build project: 
+
+```bash
+go install DIRECTORY
+go build DIRECTORY
+```
+
+ - install places the binary in `bin`
+ - builds places the binary as a package in `pkg`
+
 tree structure of the go project:
 
 ```
@@ -45,7 +55,7 @@ Usage of system:
   - name="NAME": Name of the file to write
 
 
-Encrypting Decrypting
+### 1. Encrypting Decrypting ###
 
 AES 128 block  operating with CBC chiper block chaining  with key 16 bytes
 
@@ -53,7 +63,16 @@ iv  vector added as header
 
 padding pcks7
 
-MODULES:
+### 2. Generating RSA key ###
+
+options: [n] number of bytes
+ 
+* public key: {m, e}
+* private key: {m,e,d,p,q,dp,dq,Q}
+
+_(In PEM format)_
+
+## MODULES: ###
 
 * __crypt__ : encrypt and decrypt functionalities
 * __keys__ : generators of keys RSA and eliptic
@@ -64,12 +83,5 @@ MODULES:
 - _system_ : All cryptography modules inside
 - _inout_ : Package to read and write files
 
-
-Generating RSA key options: [n] number of bytes
-
-* public key: {m, e}
-* private key: {m,e,d,p,q,dp,dq,Q}
-
-_(In PEM format)_
 
 
