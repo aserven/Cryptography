@@ -1,7 +1,7 @@
 package main
 
 
- import (
+ /*import (
    "io"
    "os"
    "fmt"
@@ -10,7 +10,16 @@ package main
    "crypto/md5"
    "crypto"
  )
-
+*/
+ import (
+   "os"
+   "fmt"
+   "crypto/rand"
+   "crypto/rsa"
+   "encoding/gob"
+   "encoding/pem"
+   "crypto/x509"
+ )
 
 func randomKey(n int) []byte {
     
@@ -31,7 +40,107 @@ func randomKey(n int) []byte {
  func RSAkey(n int) {
 
    // generate private key
-   privatekey, err := rsa.GenerateKey(rand.Reader, 1024)
+   privatekey, err := rsa.GenerateKey(rand.Reader, n)
+
+   if err != nil {
+     fmt.Println(err.Error)
+     os.Exit(1)
+   }
+
+   D := privatekey.D //private exponent
+   Primes := privatekey.Primes
+   PCValues := privatekey.Precomputed
+
+   // Note : Only used for 3rd and subsequent primes
+   //CRTVal := privatekey.Precomputed.CRTValues
+
+
+   fmt.Println("Private Key : ", privatekey)
+   fmt.Println("\nPrivate Exponent : ", D.String())
+   fmt.Printf("\nPrimes :\n %s\n %s \n", Primes[0].String(), Primes[1].String())
+   fmt.Printf("\nPrecomputed Values :\n Dp[%s]\n Dq[%s]\n", PCValues.Dp.String(), PCValues.Dq.String())
+   fmt.Printf("\nPrecomputed Values : Qinv[%s]", PCValues.Qinv.String())
+   fmt.Println()
+
+   var publickey *rsa.PublicKey
+   publickey = &privatekey.PublicKey
+
+   // save private and public key separately
+   privatekeyfile, err := os.Create("private.key")
+   if err != nil {
+    fmt.Println(err)
+    os.Exit(1)
+   }
+   privatekeyencoder := gob.NewEncoder(privatekeyfile)
+   privatekeyencoder.Encode(privatekey)
+   privatekeyfile.Close()
+
+
+   publickeyfile, err := os.Create("public.key")
+   if err != nil {
+      fmt.Println(err)
+      os.Exit(1)
+   }
+
+   publickeyencoder := gob.NewEncoder(publickeyfile)
+   publickeyencoder.Encode(publickey)
+   publickeyfile.Close()
+
+   // save PEM file
+   publicPEMfile, err := os.Create("public.pem")
+
+   if err != nil {
+      fmt.Println(err)
+      os.Exit(1)
+   }
+
+   publicEncodedKey, err := x509.MarshalPKIXPublicKey(publickey) 
+   if err != nil {
+      fmt.Println(err)
+      os.Exit(1)
+   }
+   // http://golang.org/pkg/encoding/pem/#Block
+   var publicPEMkey = &pem.Block{
+                Type : "PUBLIC KEY",
+                Bytes : publicEncodedKey}
+
+   err = pem.Encode(publicPEMfile, publicPEMkey)
+
+   if err != nil {
+      fmt.Println(err)
+      os.Exit(1)
+   }
+
+   publicPEMfile.Close()
+   
+
+   privatePEMfile, err := os.Create("private.pem")
+
+   if err != nil {
+      fmt.Println(err)
+      os.Exit(1)
+   }
+
+   // http://golang.org/pkg/encoding/pem/#Block
+   var privatePEMkey = &pem.Block{
+                Type : "RSA PRIVATE KEY",
+                Bytes : x509.MarshalPKCS1PrivateKey(privatekey)}
+
+   err = pem.Encode(privatePEMfile, privatePEMkey)
+
+   if err != nil {
+      fmt.Println(err)
+      os.Exit(1)
+   }
+
+   privatePEMfile.Close()
+
+ }
+
+  /*
+
+   // generate private key
+   privatekey, err := rsa.GenerateKey(rand.Reader, n)
 
    if err != nil {
      fmt.Println(err.Error)
@@ -50,9 +159,9 @@ func randomKey(n int) []byte {
    fmt.Println()
    fmt.Println("Private Exponent : ", D.String())
    fmt.Println()
-   fmt.Printf("Primes : %s %s \n", Primes[0].String(), Primes[1].String())
+   fmt.Printf("Primes :\n %s\n %s \n", Primes[0].String(), Primes[1].String())
    fmt.Println()
-   fmt.Printf("Precomputed Values : Dp[%s] Dq[%s]\n", PCValues.Dp.String(), PCValues.Dq.String())
+   fmt.Printf("Precomputed Values :\n Dp[%s]\n Dq[%s]\n", PCValues.Dp.String(), PCValues.Dq.String())
    fmt.Println()
    fmt.Printf("Precomputed Values : Qinv[%s]", PCValues.Qinv.String())
    fmt.Println()
@@ -198,7 +307,7 @@ func randomKey(n int) []byte {
      fmt.Println("VerifyPSS successful")
    }
 
- }
+ }*/
 
 
 /** 

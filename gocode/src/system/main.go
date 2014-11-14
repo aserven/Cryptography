@@ -14,7 +14,8 @@ func Usage() {
 }
 
 
-// MIRAR INTERFACES I CHANNELS 
+// MIRAR INTERFACES I CHANNELS
+// CAMBIAR A ACTION = [encrypt, decrypt, rsa, genkey] 
 
 func main() {
 
