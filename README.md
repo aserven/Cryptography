@@ -63,14 +63,24 @@ iv  vector added as header
 
 padding pcks7
 
-### 2. Generating RSA key ###
+### 2. Generating RSA and ECC keys ###
 
 options: [n] number of bytes
  
 * public key: {m, e}
 * private key: {m,e,d,p,q,dp,dq,Q}
 
-_(In PEM format)_
+_(In PEM format: private.pem, public.pem)_
+ASN.1, DER format --> then generate PEM file
+
+```
+openssl rsa -in private.pem -text
+openssl rsa -in public.pem -pubin -text
+```
+
+options: [curve] name of the curve
+
+
 
 ## MODULES: ###
 
