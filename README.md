@@ -80,7 +80,21 @@ openssl rsa -in public.pem -pubin -text
 
 options: [curve] name of the curve
 
+generate 224, 256, 384 and 521 curves
 
+### 3. Sign Verify ###
+
+### 4. Send / Receive ###
+
+## TO DO ## 
+[x] Encrypt 
+[x] Decrypt
+[x] RSA 
+[ ] ECC
+[ ] Signature
+[ ] Verification
+[ ] Send
+[ ] Receive
 
 ## MODULES: ###
 
