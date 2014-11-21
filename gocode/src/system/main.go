@@ -23,18 +23,20 @@ func main() {
     keyPtr  := flag.String("key", "KEY", "Key to encrypt/decrypt")
     namePtr := flag.String("name", "NAME", "Name of the file to write")
     rsaPtr := flag.Int("rsa", 2048, "Generate RSA key of n bits")
+    eccPtr := flag.String("ECC", "256", "Generate ECC key called P256, P384 or P521")
     encPtr := flag.Bool("e", false, "Tell the program to encrypt the file")
     decPtr := flag.Bool("d", false, "Tell the program to decrypt the file")
     randKeyPtr := flag.Bool("k", false, "Generates a random key")
-    rsaGenPtr := flag.Bool("gen", false, "Tell to generate")
+    rsaGenPtr := flag.Bool("genRsa", false, "Tell to generate")
+    eccGenPtr := flag.Bool("genEcc", false, "Tell to generate")
     sizePtr := flag.Int("size", 16, "Generates a random key of n bytes")
 
     //Once all flags are declared, call flag.Parse() to execute the command-line parsing.
     flag.Parse()
 
-    var incorrect bool = !*rsaGenPtr && !*randKeyPtr && *filePtr == "FILE" && *keyPtr == "KEY" && len(flag.Args()) == 0
+    var incorrect bool = !*eccGenPtr && !*rsaGenPtr && !*randKeyPtr && *filePtr == "FILE" && *keyPtr == "KEY" && len(flag.Args()) == 0
 
-    if (*encPtr && *decPtr) || (!*rsaGenPtr && !*encPtr && !*decPtr && !*randKeyPtr) || incorrect {
+    if (*encPtr && *decPtr) || (!*eccGenPtr && !*rsaGenPtr && !*encPtr && !*decPtr && !*randKeyPtr) || incorrect {
         flag.Usage()
         os.Exit(0)
     }
@@ -83,6 +85,10 @@ func main() {
     } else if *rsaGenPtr {
 
         RSAkey(*rsaPtr)
+
+    } else if *eccGenPtr {
+
+        ECCkey(*eccPtr)
     }
 
 }

@@ -11,15 +11,24 @@ package main
    "crypto"
  )
 */
- import (
-   "os"
-   "fmt"
-   "crypto/rand"
-   "crypto/rsa"
-   "encoding/gob"
-   "encoding/pem"
-   "crypto/x509"
- )
+import (
+    "io"
+    "os"
+    "fmt"
+    "hash"
+    "math/big"
+
+    "crypto/rand"
+    "crypto/rsa"
+    "crypto/ecdsa"
+    "crypto/elliptic"
+    "crypto/x509"
+
+    "crypto/md5"
+
+    "encoding/gob"
+    "encoding/pem"
+)
 
 func randomKey(n int) []byte {
     
@@ -316,7 +325,134 @@ func randomKey(n int) []byte {
  * returns two files in PEM format with the public and 
  * private key ECDH
  */
- func ECCkey() {
- 	
+ func ECCkey(name string) {
+
+
+    var pubkeyCurve elliptic.Curve
+
+    switch name {
+    case "256": pubkeyCurve = elliptic.P256()
+    case "384": pubkeyCurve = elliptic.P384()
+    case "521": pubkeyCurve = elliptic.P521()
+    }
+
+    //pubkeyCurve := elliptic.P256() //see http://golang.org/pkg/crypto/elliptic/#P256
+
+
+    privatekey := new(ecdsa.PrivateKey)
+    privatekey, err := ecdsa.GenerateKey(pubkeyCurve, rand.Reader) // this generates a public & private key pair
+
+    if err != nil {
+      fmt.Println(err)
+      os.Exit(1)
+    }
+
+    var publickey *ecdsa.PublicKey
+    publickey = &privatekey.PublicKey
+
+    fmt.Println("Private Key :")
+    fmt.Printf("%x \n", privatekey)
+
+    fmt.Println("Public Key :")
+    fmt.Printf("%x \n",publickey)
+
+
+   // save private and public key separately
+   privatekeyfile, err := os.Create("privateEC.key")
+   if err != nil {
+    fmt.Println(err)
+    os.Exit(1)
+   }
+   privatekeyencoder := gob.NewEncoder(privatekeyfile)
+   privatekeyencoder.Encode(privatekey)
+   privatekeyfile.Close()
+
+
+   publickeyfile, err := os.Create("publicEC.key")
+   if err != nil {
+      fmt.Println(err)
+      os.Exit(1)
+   }
+
+   publickeyencoder := gob.NewEncoder(publickeyfile)
+   publickeyencoder.Encode(publickey)
+   publickeyfile.Close()
+
+   // save PEM file
+   publicPEMfile, err := os.Create("publicEC.pem")
+
+   if err != nil {
+      fmt.Println(err)
+      os.Exit(1)
+   }
+
+   publicEncodedKey, err := x509.MarshalPKIXPublicKey(publickey) 
+   if err != nil {
+      fmt.Println(err)
+      os.Exit(1)
+   }
+   // http://golang.org/pkg/encoding/pem/#Block
+   var publicPEMkey = &pem.Block{
+                Type : "PUBLIC KEY",
+                Bytes : publicEncodedKey}
+
+   err = pem.Encode(publicPEMfile, publicPEMkey)
+
+   if err != nil {
+      fmt.Println(err)
+      os.Exit(1)
+   }
+
+   publicPEMfile.Close()
+   
+
+   privatePEMfile, err := os.Create("privateEC.pem")
+
+   if err != nil {
+      fmt.Println(err)
+      os.Exit(1)
+   }
+
+   privateEncodedKey, err := x509.MarshalECPrivateKey(privatekey)
+   // http://golang.org/pkg/encoding/pem/#Block
+   var privatePEMkey = &pem.Block{
+                Type : "EC PRIVATE KEY",
+                Bytes : privateEncodedKey}
+
+   err = pem.Encode(privatePEMfile, privatePEMkey)
+
+   if err != nil {
+      fmt.Println(err)
+      os.Exit(1)
+   }
+
+   privatePEMfile.Close()
+
+ 
+
+    // Sign ecdsa style
+
+    var h hash.Hash
+    h = md5.New()
+    r := big.NewInt(0)
+    s := big.NewInt(0)
+
+    io.WriteString(h, "This is a message to be signed and verified by ECDSA!")
+    signhash := h.Sum(nil)
+
+    r, s, serr := ecdsa.Sign(rand.Reader, privatekey, signhash)
+    if serr != nil {
+       fmt.Println(err)
+       os.Exit(1)
+    }
+
+    signature := r.Bytes()
+    signature = append(signature, s.Bytes()...)
+
+    fmt.Printf("Signature : %x\n", signature)
+
+    // Verify
+    verifystatus := ecdsa.Verify(publickey, signhash, r, s)
+    fmt.Println(verifystatus)  // should be true
  }
 
