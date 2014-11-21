@@ -80,21 +80,23 @@ openssl rsa -in public.pem -pubin -text
 
 options: [curve] name of the curve
 
-generate 224, 256, 384 and 521 curves
+curvas secp256, secp384 y secp521
+generate 256, 384 and 521 curves
+
+```
+openssl ec -in private.pem -text
+openssl ec -in public.pem -pubin -text
+```
 
 ### 3. Sign Verify ###
 
+SignPSS
+VerifyPSS
+
+with SHA256 hash
+
 ### 4. Send / Receive ###
 
-## TO DO ## 
-[x] Encrypt 
-[x] Decrypt
-[x] RSA 
-[ ] ECC
-[ ] Signature
-[ ] Verification
-[ ] Send
-[ ] Receive
 
 ## MODULES: ###
 
