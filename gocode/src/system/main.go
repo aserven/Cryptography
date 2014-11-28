@@ -29,14 +29,17 @@ func main() {
     randKeyPtr := flag.Bool("k", false, "Generates a random key")
     rsaGenPtr := flag.Bool("genRsa", false, "Tell to generate")
     eccGenPtr := flag.Bool("genEcc", false, "Tell to generate")
+    signPtr := flag.Bool("sign", false, "Tell to sign file")
+    verifyPtr := flag.Bool("verify", false, "Tell to verify file")
     sizePtr := flag.Int("size", 16, "Generates a random key of n bytes")
 
     //Once all flags are declared, call flag.Parse() to execute the command-line parsing.
     flag.Parse()
 
-    var incorrect bool = !*eccGenPtr && !*rsaGenPtr && !*randKeyPtr && *filePtr == "FILE" && *keyPtr == "KEY" && len(flag.Args()) == 0
+    var incorrect bool = !*verifyPtr && !*signPtr && !*eccGenPtr && !*rsaGenPtr && !*randKeyPtr && *filePtr == "FILE" && *keyPtr == "KEY" && len(flag.Args()) == 0
 
-    if (*encPtr && *decPtr) || (!*eccGenPtr && !*rsaGenPtr && !*encPtr && !*decPtr && !*randKeyPtr) || incorrect {
+    if (*encPtr && *decPtr) || (!*verifyPtr && !*signPtr && !*eccGenPtr && !*rsaGenPtr && !*encPtr && !*decPtr && !*randKeyPtr) || incorrect {
+        // FER EL PROPI
         flag.Usage()
         os.Exit(0)
     }
@@ -54,6 +57,7 @@ func main() {
     var keyName string = *keyPtr
     var outputFile string = *namePtr
 
+    //QUAN FA ENCODE FER DECODE I COMPROVAR QUE ESTA CORRECTE
     if *encPtr {
 
         var key []byte = inout.ReadFile(keyName) //[]byte("example key 1234")
@@ -89,6 +93,16 @@ func main() {
     } else if *eccGenPtr {
 
         ECCkey(*eccPtr)
+
+    }else if *signPtr {
+        var file []byte = inout.ReadFile(fileName)
+        var key []byte = inout.ReadFile(keyName) 
+        sign(file,key)
+        
+    }else if *verifyPtr {
+        var file []byte = inout.ReadFile(fileName)
+        var key []byte = inout.ReadFile(keyName) 
+        verify(file,key)
     }
 
 }
