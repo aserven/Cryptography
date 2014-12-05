@@ -80,21 +80,32 @@ openssl rsa -in public.pem -pubin -text
 
 options: [curve] name of the curve
 
-generate 224, 256, 384 and 521 curves
+curvas secp256, secp384 y secp521
+generate 256, 384 and 521 curves
+
+```
+openssl ec -in private.pem -text
+openssl ec -in public.pem -pubin -text
+```
 
 ### 3. Sign Verify ###
 
+* RSA (signature 256 bytes with 256 bits)
+    - SignPSS 
+    - VerifyPSS
+
+* ECDSA with P256 (signature occupies 2 x 256 bytes, generates two big ints)
+    - Sign
+    - Verify
+
+**to sign:** file key - returns file.signature
+**to verify:** file key signature - returns True | False 
+
+with SHA256 hash
+
 ### 4. Send / Receive ###
 
-## TO DO ## 
-[x] Encrypt 
-[x] Decrypt
-[x] RSA 
-[ ] ECC
-[ ] Signature
-[ ] Verification
-[ ] Send
-[ ] Receive
+should use ecdsa with DH
 
 ## MODULES: ###
 
