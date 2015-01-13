@@ -35,7 +35,7 @@ func sendMessage(file, keyRSA, signKey []byte) []byte {
 
     // EncryptOAEP
 
-    label := []byte("")
+    //label := []byte("")
     sha1hash := crypto.SHA1.New()
 
     keyBlock2, _ := pem.Decode(keyRSA)
@@ -49,7 +49,7 @@ func sendMessage(file, keyRSA, signKey []byte) []byte {
     if pkeyRSA, ok := publickey.(*rsa.PublicKey); ok {
         /* act on pkey */
         //err = rsa.VerifyPSS(pkey, newhash, hashed, signature, &opts)
-        encryptedmsg, err := rsa.EncryptOAEP(sha1hash, rand.Reader, pkeyRSA, keyAES, label)
+        encryptedmsg, err := rsa.EncryptOAEP(sha1hash, rand.Reader, pkeyRSA, keyAES, nil)
         if err != nil {
             fmt.Println(err)
             os.Exit(1)
@@ -131,7 +131,7 @@ func receiveMessage(file, keyRSA, signKey []byte) ([]byte, []byte) {
     var signOK []byte = decryptedMsg[len(decryptedMsg)-64:]
     
 
-    fmt.Printf("KEY PEM: %# x\n", messageOK)
+    fmt.Printf("KEY PEM: %# x\n", messageOK[:20])
      var ret bool = verifyECDSA(messageOK,signOK,signKey)
     if ret {
         fmt.Println("Signed correctly: True")

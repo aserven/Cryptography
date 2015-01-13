@@ -11,6 +11,7 @@ import (
 
 func Usage() {
     // PER FER ...
+    fmt.Println("USAGE")
 }
 
 
@@ -18,11 +19,15 @@ func Usage() {
 // CAMBIAR A ACTION = [encrypt, decrypt, rsa, genkey] 
 
 func main() {
+    actionPtr := flag.String("action", "EMPTY", "Tell the action that you want")
 
     filePtr := flag.String("file", "FILE", "File to encrypt/decrypt")
     keyPtr  := flag.String("key", "KEY", "Key to encrypt/decrypt")
     namePtr := flag.String("name", "NAME", "Name of the file to write")
     signaturePtr := flag.String("signName", "Signed", "Name of the file to write")
+    
+    sizePtr := flag.Int("size", 16, "Generates a random key of n bytes")
+    
     rsaPtr := flag.Int("rsa", 2048, "Generate RSA key of n bits")
     eccPtr := flag.String("ECC", "256", "Generate ECC key called P256, P384 or P521")
     encPtr := flag.Bool("e", false, "Tell the program to encrypt the file")
@@ -32,7 +37,6 @@ func main() {
     eccGenPtr := flag.Bool("genEcc", false, "Tell to generate")
     signPtr := flag.Bool("sign", false, "Tell to sign file")
     verifyPtr := flag.Bool("verify", false, "Tell to verify file")
-    sizePtr := flag.Int("size", 16, "Generates a random key of n bytes")
     test := flag.Bool("test", false, "Test program")
 
     //Once all flags are declared, call flag.Parse() to execute the command-line parsing.
@@ -138,5 +142,34 @@ func main() {
             fmt.Println("False")
         }
     }
+
+    switch *actionPtr {
+    default:
+        Usage()
+    case "encrypt": 
+        var key []byte = inout.ReadFile(keyName) //[]byte("example key 1234")
+        var file []byte = inout.ReadFile(fileName) //[]byte("exampleplaintext")
+        var encrypted []byte = encrypt(file, key)
+        
+        inout.WriteFile(encrypted, outputFile)
+        fmt.Printf("Encrypted %# x\n %# x\n", encrypted[:20], encrypted[len(encrypted)-20:])
+
+        // Mirar si decrypt(encrypted) = file
+    case "decrypt": 
+        var file []byte = inout.ReadFile(fileName)
+        var key []byte = inout.ReadFile(keyName) 
+        var decrypted []byte = decrypt(file, key)
+
+        fmt.Printf("%# x\n", decrypted[len(decrypted)-20:])
+        inout.WriteFile(decrypted, outputFile)
+
+    case "rsa":
+    case "ec":
+    case "sign":
+    case "verify":
+    case "send":
+    case "receive":
+    }
+
 
 }
