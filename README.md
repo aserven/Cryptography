@@ -4,6 +4,7 @@ Cryptographic System
 Cryptographic system implemented in Go language for [Cryptography](http://www.fib.upc.edu/fib/estudiar-enginyeria-informatica/assignatures/C.html) subject in [FIB](http://www.fib.upc.edu/fib.html)
 
 General info about Go: http://golang.org/
+All libraries used can be visited here: http://golang.org/pkg/
 
 ## Install Go ##
 
@@ -46,99 +47,108 @@ where the package `inout` will be stored. An overview of the structure:
         ├── message.go
         └── signature.go
 ```
-* __`crypt.go`__: 
+* __`crypt.go`__: Contains all functions for encrypt and decrypt a file
+* __`keys.go`__: Functions to generate an RSA key and EC key
+* __`signature.go`__: Functions to sign and verify files with EC and RSA keys
+* __`message.go`__: Functions to send and receive a message
+* __`main.go`__: Main program
+* __`inout.go`__: Functions to read and write files
 
 
 ### Usage ###
-'''
-USAGE:
-Usage of system:
-  - d=false: Tell the program to decrypt the file
-  - e=false: Tell the program to encrypt the file
-  - file="FILE": File to encrypt/decrypt
-  - key="KEY": Key to encrypt/decrypt
-  - name="NAME": Name of the file to write
+```
+--------------------------------------------------------------------------------
+USAGE: system -action < ACTION >
+--------------------------------------------------------------------------------
+     encrypt -file FILE -key KEY [-name OUTPUT]
+     decrypt -file FILE -key KEY [-name OUTPUT]
+     rsa     [-size INTEGER]
+     ec      [-name <256 | 384 | 521>]
+     sign    -file FILE -key ECKEY [-name OUTPUT]
+     verify  -file FILE -key ECKEY  -sign SIGNATURE
+     send    -file FILE -key RSAKEY -sign ECKEY [-name OUTPUT]
+     receive -file FILE -key RSAKEY -sign ECKEY [-name OUTPUT] [-signName SIGNATURE]
 
+  * encrypt: Encrypts a file with a key usgin AES operating with CBC
+  * decrypt: Decrypts a file with a key usgin AES operating with CBC
+  * rsa:     Generates an RSA key in PEM format (public and private files). DEFAULT VALUE: 2048
+  * ec:      Generates an EC key in PEM format (public and private files). DEFAULT CURVE: P256
+  * sign:    Signs a file with the given key. Has to be EC
+  * verify:  Verifies if the file is signed with the signature given
+  * send:    Signs the message and encrypts it with AES including the key encrypted with RSA key
+  * receive: Decrypts the file and writes the message and the signature
 
-### 1. Encrypting Decrypting ###
+  -file FILE: Name of the file to use
+  -key  KEY:  Name of the key to use
+  -sign SIGN: Name of the key to sign/verify or signature
+  -name NAME: Name of the file to be written or curve to be used
+  -size SIZE: Number of bits to generate the RSA key
+  -signName NAME: Name of the file to be written as signature
+--------------------------------------------------------------------------------
+```
 
-AES 128 block  operating with CBC chiper block chaining  with key 16 bytes
+### Examples of calls ###
 
-iv  vector added as header
+```
+   system -action encrypt ../test/bits.jpg -key ../test/SecretKey 
+   system -action encrypt -file ../test/bits.jpg -key ../test/SecretKey 
+   system -action decrypt -file result.out -key ../test/SecretKey 
+   system -action rsa
+   system -action ec
+   system -action sign -file ../test/bits.jpg -key privateEC.pem 
+   system -action verify -file result.out -key publicEC.pem 
+   system -action verify -file ../test/bits.jpg -sign result.out -key publicEC.pem 
+   system -action send -file ../test/bits.jpg -key privateRSA.pem -sign privateEC.pem 
+   system -action send -file ../test/bits.jpg -key publicRSA.pem -sign privateEC.pem -name bits.jpg.enc
+   system -action receive -file bits.jpg.enc -key privateRSA.pem -sign publicEC.pem -name bitsOK.jpg -signName bits.jpg.signature
+```
 
-padding pcks7
+## Details ##
+### 1. Encrypting / Decrypting ###
+Encryption and decryption uses the AES algorithm with blocks of 128 bits operating with
+cypher block chaining (CBC) with the given key (usually 16 bytes). An IV vector is added 
+as header and before encryption and after decryption uses padding PKCS #7
 
 ### 2. Generating RSA and ECC keys ###
 
-options: [n] number of bytes
- 
-* public key: {m, e}
-* private key: {m,e,d,p,q,dp,dq,Q}
+#### 2.1 RSA ####
+Given an integer n, generates an RSA key with n bits in PEM format. Default value is 2048 bits (recommended).
+Outputs always two files:
+   - publicRSA.pem
+   - privateRSA.pem
 
-_(In PEM format: private.pem, public.pem)_
-ASN.1, DER format --> then generate PEM file
+If you want to check your generated key you can run in the terminal:
 
 ```
-openssl rsa -in private.pem -text
-openssl rsa -in public.pem -pubin -text
+openssl rsa -in publicRSA.pem -pubin -tex
+openssl rsa -in privateRSA.pem -text
 ```
 
-options: [curve] name of the curve
+#### 2.2 EC ####
+Given a name of a curve (only available to input 256, 384 and 521) generates that 
+curve (prime256v1,prime384v1,prime521v1). By default generates prime256v1.
 
-curvas secp256, secp384 y secp521
-curvas secp256, secp384 y secp521
-generate 256, 384 and 521 curves
+If you want to check your generated key you can run in the terminal:
+```
+openssl ec -in publicEC.pem -pubin -text
+openssl ec -in privateEC.pem -text
+```
 
+To list all the curves available in openssl use
 ```openssl ecparam -list_curves```
 
-```
-openssl ec -in private.pem -text
-openssl ec -in public.pem -pubin -text
-```
+### 3. Sign / Verify ###
+The system can sign with RSA and EC keys. The functions in the main program are with EC. 
+All signatures and verifications use SHA256 hash.
 
-### 3. Sign Verify ###
+To sign a file is needed to provide its name and the private key. To verify it needs the public
+key and also the signature. With EC keys generates two big ints, each one has 256 bits, so the 
+size of the signature is 64 bytes.
 
-* RSA (signature 256 bytes with 256 bits)
-    - SignPSS 
-    - VerifyPSS
-
-* ECDSA with P256 (signature occupies 2 x 256 bytes, generates two big ints)
-    - Sign
-    - Verify
-
-**to sign:** file key - returns file.signature
-**to verify:** file key signature - returns True | False 
-
-with SHA256 hash
-
-### 4. Send / Receive ###
-
-should use ecdsa with DH
-
-## MODULES: ###
-
-* __crypt__ : encrypt and decrypt functionalities
-* __keys__ : generators of keys RSA and eliptic
-* __signature__ : Methods to sign and authenticate
-* __main__ : Main program 
-
-
-- _system_ : All cryptography modules inside
-- _inout_ : Package to read and write files
+### 4. Send / Receive Message ###
+The function that sends a message is provided with the file, a public RSA key and a private EC
+key for signing purposes. 
 
 
 
-EXAMPLES
-
-    bin/system -action encrypt ../test/bits.jpg -key ../test/SecretKey 
-    bin/system -action encrypt -file ../test/bits.jpg -key ../test/SecretKey 
-    bin/system -action decrypt -file result.out -key ../test/SecretKey 
-    bin/system -action rsa
-    bin/system -action ec
-    bin/system -action sign -file ../test/bits.jpg -key privateEC.pem 
-    bin/system -action verify -file result.out -key publicEC.pem 
-    bin/system -action verify -file ../test/bits.jpg -sign result.out -key publicEC.pem 
-    bin/system -action send -file ../test/bits.jpg -key privateRSA.pem -sign privateEC.pem 
-    bin/system -action send -file ../test/bits.jpg -key publicRSA.pem -sign privateEC.pem -name bits.jpg.enc
-    bin/system -action receive -file bits.jpg.enc -key privateRSA.pem -sign publicEC.pem -name bitsOK.jpg -signName bits.jpg.signature
 
