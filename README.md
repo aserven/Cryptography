@@ -1,15 +1,23 @@
-Sistema Criptogràfic
+Cryptographic System
 ==================================
 
-Implementació d'un sistema criptogràfic en el llenguatge Go
+Cryptographic system implemented in Go language for [Cryptography](http://www.fib.upc.edu/fib/estudiar-enginyeria-informatica/assignatures/C.html) subject in [FIB](http://www.fib.upc.edu/fib.html)
 
-http://golang.org/
+General info about Go: http://golang.org/
 
-Instal·lació: (Versió usada: 1.3.3)
+## Install Go ##
 
-[Download here](http://golang.org/doc/install)
+Version used: 1.3.3
 
-GOPATH="Your path where you want the code to be stored"
+http://golang.org/doc/install
+
+
+## Build project ##
+
+Once installed, set the variable GOPATH to the main directory of the project
+```bash
+export GOPATH="Your directory"/gocode
+```
 
 
 comands to build project: 
@@ -122,4 +130,18 @@ should use ecdsa with DH
 - _inout_ : Package to read and write files
 
 
+
+EXAMPLES
+
+    bin/system -action encrypt ../test/bits.jpg -key ../test/SecretKey 
+    bin/system -action encrypt -file ../test/bits.jpg -key ../test/SecretKey 
+    bin/system -action decrypt -file result.out -key ../test/SecretKey 
+    bin/system -action rsa
+    bin/system -action ec
+    bin/system -action sign -file ../test/bits.jpg -key privateEC.pem 
+    bin/system -action verify -file result.out -key publicEC.pem 
+    bin/system -action verify -file ../test/bits.jpg -sign result.out -key publicEC.pem 
+    bin/system -action send -file ../test/bits.jpg -key privateRSA.pem -sign privateEC.pem 
+    bin/system -action send -file ../test/bits.jpg -key publicRSA.pem -sign privateEC.pem -name bits.jpg.enc
+    bin/system -action receive -file bits.jpg.enc -key privateRSA.pem -sign publicEC.pem -name bitsOK.jpg -signName bits.jpg.signature
 

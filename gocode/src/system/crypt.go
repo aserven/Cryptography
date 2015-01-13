@@ -9,29 +9,9 @@ import (
     "encoding/binary"
 )
 
-/**
- * Equals
- * Given two slices of bytes, compare if are the same
- */
- func equals(b1, b2 []byte) bool {
-    if len(b1) != len(b2) {
-        return false
-    } else {
-        var i1, i2 int = 0, 0
-        for i1 < len(b1) && i2 < len(b2) {
-            if b1[i1] != b2[i2] {
-                return false
-            }
-            i1 += 1
-            i2 += 1
-        }
-        return i1==i2
-    }
- }
-
 /** 
  * pkcs7 Padding
- * 
+ * Adds padding equal to blocksize specified
  */
 func pkcs7PAD(file []byte, blocksize int) []byte {
 
@@ -46,7 +26,7 @@ func pkcs7PAD(file []byte, blocksize int) []byte {
 
 /** 
  * pkcs7 UnPad
- * 
+ * Removes padding specified by blocksize
  */
 func pkcs7UNPAD(file []byte, blocksize int) []byte {
 
@@ -82,14 +62,8 @@ func encrypt(file, key []byte) []byte {
     mode := cipher.NewCBCEncrypter(block, iv)
     mode.CryptBlocks(ciphertext[aes.BlockSize:], plaintext)
 
-    if equals(decrypt(ciphertext,key),file) {
-        return ciphertext
-    } else {
-        panic("Something went wrong: Bad encryption")
-        return file
-    }
+    return ciphertext
 }
-
 
 /** 
  * Decrypt

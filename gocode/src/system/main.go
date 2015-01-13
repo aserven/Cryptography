@@ -5,171 +5,158 @@ import (
     "os"
     "fmt"
     "flag"
-    "strings"
     "inout"
 )
 
+/**
+ * Usage
+ */
 func Usage() {
-    // PER FER ...
-    fmt.Println("USAGE")
+    fmt.Println("--------------------------------------------------------------------------------")
+    fmt.Println("USAGE: system -action < ACTION >")
+    fmt.Println("--------------------------------------------------------------------------------")
+
+    fmt.Println("     encrypt -file FILE -key KEY [-name OUTPUT]")
+    fmt.Println("     decrypt -file FILE -key KEY [-name OUTPUT]")
+    fmt.Println("     rsa     [-size INTEGER]")
+    fmt.Println("     ec      [-name <256 | 384 | 521>]")
+    fmt.Println("     sign    -file FILE -key ECKEY [-name OUTPUT]")
+    fmt.Println("     verify  -file FILE -key ECKEY  -sign SIGNATURE")
+    fmt.Println("     send    -file FILE -key RSAKEY -sign ECKEY [-name OUTPUT]")
+    fmt.Println("     receive -file FILE -key RSAKEY -sign ECKEY [-name OUTPUT] [-signName SIGNATURE]\n")
+
+    fmt.Println("  * encrypt: Encrypts a file with a key usgin AES operating with CBC")
+    fmt.Println("  * decrypt: Decrypts a file with a key usgin AES operating with CBC")
+    fmt.Println("  * rsa:     Generates an RSA key in PEM format (public and private files). DEFAULT VALUE: 2048")
+    fmt.Println("  * ec:      Generates an EC key in PEM format (public and private files). DEFAULT CURVE: P256")
+    fmt.Println("  * sign:    Signs a file with the given key. Has to be EC")
+    fmt.Println("  * verify:  Verifies if the file is signed with the signature given")
+    fmt.Println("  * send:    Signs the message and encrypts it with AES including the key encrypted with RSA key")
+    fmt.Println("  * receive: Decrypts the file and writes the message and the signature\n")
+
+    fmt.Println("  -file FILE: Name of the file to use")
+    fmt.Println("  -key  KEY:  Name of the key to use")
+    fmt.Println("  -sign SIGN: Name of the key to sign/verify or signature")
+    fmt.Println("  -name NAME: Name of the file to be written or curve to be used")
+    fmt.Println("  -size SIZE: Number of bits to generate the RSA key")
+    fmt.Println("  -signName NAME: Name of the file to be written as signature")
+    fmt.Println("--------------------------------------------------------------------------------")
+    os.Exit(0)
 }
 
-
-// MIRAR INTERFACES I CHANNELS
-// CAMBIAR A ACTION = [encrypt, decrypt, rsa, genkey] 
-
+/** 
+ * MAIN
+ */
 func main() {
+
     actionPtr := flag.String("action", "EMPTY", "Tell the action that you want")
+    filePtr := flag.String("file", "FILE", "File to use")
+    keyPtr  := flag.String("key", "KEY", "Key to use")
+    signPtr := flag.String("sign", "SIGN", "Key to use for signing")
+    namePtr := flag.String("name", "result.out", "Name of the file to write")
+    signNamePtr := flag.String("signName", "result.signature", "Name of signature to write")
+    sizePtr := flag.Int("size", 0, "Size")
 
-    filePtr := flag.String("file", "FILE", "File to encrypt/decrypt")
-    keyPtr  := flag.String("key", "KEY", "Key to encrypt/decrypt")
-    namePtr := flag.String("name", "NAME", "Name of the file to write")
-    signaturePtr := flag.String("signName", "Signed", "Name of the file to write")
-    
-    sizePtr := flag.Int("size", 16, "Generates a random key of n bytes")
-    
-    rsaPtr := flag.Int("rsa", 2048, "Generate RSA key of n bits")
-    eccPtr := flag.String("ECC", "256", "Generate ECC key called P256, P384 or P521")
-    encPtr := flag.Bool("e", false, "Tell the program to encrypt the file")
-    decPtr := flag.Bool("d", false, "Tell the program to decrypt the file")
-    randKeyPtr := flag.Bool("k", false, "Generates a random key")
-    rsaGenPtr := flag.Bool("genRsa", false, "Tell to generate")
-    eccGenPtr := flag.Bool("genEcc", false, "Tell to generate")
-    signPtr := flag.Bool("sign", false, "Tell to sign file")
-    verifyPtr := flag.Bool("verify", false, "Tell to verify file")
-    test := flag.Bool("test", false, "Test program")
-
-    //Once all flags are declared, call flag.Parse() to execute the command-line parsing.
+    flag.Usage = func() {
+        Usage()
+    }
     flag.Parse()
-
-    var incorrect bool = !*verifyPtr && !*signPtr && !*eccGenPtr && !*rsaGenPtr && !*randKeyPtr && *filePtr == "FILE" && *keyPtr == "KEY" && len(flag.Args()) == 0
-
-    if (!*test) && ((*encPtr && *decPtr) || (!*verifyPtr && !*signPtr && !*eccGenPtr && !*rsaGenPtr && !*encPtr && !*decPtr && !*randKeyPtr) || incorrect) {
-        // FER EL PROPI
-        flag.Usage()
-        os.Exit(0)
-    }
-
-    if *namePtr == "NAME" {
-        if *encPtr {
-            *namePtr = *filePtr + ".enc"
-        } else {
-            *namePtr = strings.TrimSuffix(*filePtr,".enc")
-        }
-    }
-
-
-    var fileName string = *filePtr
-    var keyName string = *keyPtr
-    var outputFile string = *namePtr
-
-    var signName string = *signaturePtr
-    var file []byte = inout.ReadFile(fileName)
-    var key []byte = inout.ReadFile(keyName) 
-    var sign []byte = inout.ReadFile(signName)
-
-    //var result []byte = sendMessage(file,key,sign)
-
-    //inout.WriteFile(result,"FileENC.enc")
-    //fmt.Printf("RESULT: %# x\n%# x", result[:256],result[len(result)-64:])
-
-
-    Mess, Firm := receiveMessage(file,key,sign)
-
-    inout.WriteFile(Mess,"MissatgeENC.png")
-    inout.WriteFile(Firm,"FirmaENC.signature")
-
-
-    //QUAN FA ENCODE FER DECODE I COMPROVAR QUE ESTA CORRECTE
-    if *encPtr {
-
-        var key []byte = inout.ReadFile(keyName) //[]byte("example key 1234")
-        var file []byte = inout.ReadFile(fileName) //[]byte("exampleplaintext")
-        var encrypted []byte = encrypt(file, key)
-        
-        inout.WriteFile(encrypted, outputFile)
-        fmt.Printf("Encrypted %# x\n %# x\n", encrypted[:20], encrypted[len(encrypted)-20:])
-
-        // Mirar si decrypt(encrypted) = file
-
-    } else if *decPtr {
-
-        var file []byte = inout.ReadFile(fileName)
-        var key []byte = inout.ReadFile(keyName) 
-        var decrypted []byte = decrypt(file, key)
-
-        fmt.Printf("%# x\n", decrypted[len(decrypted)-20:])
-        inout.WriteFile(decrypted, outputFile)
-    
-    } else if *randKeyPtr {
-        if *namePtr == "FILE" {
-            outputFile = "mySecretKey"
-        }
-        var newKey []byte = randomKey(*sizePtr)
-        inout.WriteFile(newKey,outputFile)
-        fmt.Printf("Key generated: %# x\n", newKey)
-
-    } else if *rsaGenPtr {
-
-        RSAkey(*rsaPtr)
-
-    } else if *eccGenPtr {
-
-        ECCkey(*eccPtr)
-
-    }else if *signPtr {
-        var file []byte = inout.ReadFile(fileName)
-        var key []byte = inout.ReadFile(keyName) 
-        //var signed []byte = sign(file,key)
-        var signed2 []byte = signECDSA(file,key)
-
-        //nameVec := strings.Split(fileName, ".")
-        //outFile := strings.Join(nameVec[0:len(nameVec)-1],"") + "SIGNED." + nameVec[len(nameVec)-1]
-        //inout.WriteFile(signed,"testRSA.signature")
-        inout.WriteFile(signed2,"testECDS2.signature")
-        
-    }else if *verifyPtr {
-        var signName string = *signaturePtr
-        var file []byte = inout.ReadFile(fileName)
-        var key []byte = inout.ReadFile(keyName) 
-        var sign []byte = inout.ReadFile(signName)
-        
-        //var ret bool = verify(file,sign,key)
-        var ret bool = verifyECDSA(file,sign,key)
-        if ret {
-            fmt.Println("True")
-        } else {
-            fmt.Println("False")
-        }
-    }
 
     switch *actionPtr {
     default:
         Usage()
-    case "encrypt": 
-        var key []byte = inout.ReadFile(keyName) //[]byte("example key 1234")
-        var file []byte = inout.ReadFile(fileName) //[]byte("exampleplaintext")
+
+    case "encrypt":
+        if *filePtr == "FILE" || *keyPtr == "KEY" {
+            Usage()
+        }
+        var file []byte = inout.ReadFile(*filePtr)
+        var key []byte = inout.ReadFile(*keyPtr) 
+        fmt.Printf("\nEncrypting with key %s the file %s Output: (%s)\n",*filePtr,*keyPtr,*namePtr)
+
         var encrypted []byte = encrypt(file, key)
-        
-        inout.WriteFile(encrypted, outputFile)
-        fmt.Printf("Encrypted %# x\n %# x\n", encrypted[:20], encrypted[len(encrypted)-20:])
+        inout.WriteFile(encrypted, *namePtr)
 
-        // Mirar si decrypt(encrypted) = file
     case "decrypt": 
-        var file []byte = inout.ReadFile(fileName)
-        var key []byte = inout.ReadFile(keyName) 
-        var decrypted []byte = decrypt(file, key)
+        if *filePtr == "FILE" || *keyPtr == "KEY" {
+            Usage()
+        }
+        var file []byte = inout.ReadFile(*filePtr)
+        var key []byte = inout.ReadFile(*keyPtr) 
+        fmt.Printf("\nDecrypting with key %s the file %s Output: (%s)\n",*filePtr,*keyPtr,*namePtr)
 
-        fmt.Printf("%# x\n", decrypted[len(decrypted)-20:])
-        inout.WriteFile(decrypted, outputFile)
+        var decrypted []byte = decrypt(file, key)
+        inout.WriteFile(decrypted, *namePtr)
 
     case "rsa":
+        if *sizePtr == 0 {
+            *sizePtr = 2048
+        }
+        fmt.Printf("\nGenerating RSA key of %d bytes.  Output: (publicRSA.pem, privateRSA.pem)\n",*sizePtr)
+        RSAkey(*sizePtr)
+
     case "ec":
+        if *namePtr == "result.out" {
+            *namePtr = "256"
+        }
+        if *namePtr != "256" && *namePtr != "384" && *namePtr != "521" {
+            Usage()
+        } else {
+            fmt.Printf("\nGenerating EC key with P%s curve. Output: (publicEC.pem, privateEC.pem)\n",*namePtr)
+            ECCkey(*namePtr)
+        }
+
     case "sign":
+        if *filePtr == "FILE" || *keyPtr == "KEY" {
+            Usage()
+        }
+        var file []byte = inout.ReadFile(*filePtr)
+        var key []byte = inout.ReadFile(*keyPtr) 
+        fmt.Printf("\nSigning with %s key the file %s Output: (%s)\n",*filePtr,*keyPtr,*namePtr)
+
+        var signed []byte = signECDSA(file,key)
+        inout.WriteFile(signed,*namePtr)
+        
     case "verify":
+        if *filePtr == "FILE" || *keyPtr == "KEY" || *signPtr == "SIGN" {
+            Usage()
+        }
+        var file []byte = inout.ReadFile(*filePtr)
+        var key []byte = inout.ReadFile(*keyPtr) 
+        var sign []byte = inout.ReadFile(*signPtr)
+        fmt.Printf("\nVerifying the file %s ...\n",*filePtr)
+
+        if verifyECDSA(file,sign,key) {
+            fmt.Printf("Verified correctly with the key %s\n",*keyPtr)
+        } else {
+            fmt.Printf("Sign doesn't match with the key %s\n",*keyPtr)
+        }
+
     case "send":
+        if *filePtr == "FILE" || *keyPtr == "KEY" || *signPtr == "SIGN" {
+            Usage()
+        }
+        var file []byte = inout.ReadFile(*filePtr)
+        var key []byte = inout.ReadFile(*keyPtr) 
+        var sign []byte = inout.ReadFile(*signPtr)
+        fmt.Printf("\nSigning with %s key the file %s, encrypting AES key with %s\n",*signPtr,*filePtr,*keyPtr)
+
+        var result []byte = sendMessage(file,key,sign)
+        fmt.Printf("\nOutput: %s\n", *namePtr)
+        inout.WriteFile(result,*namePtr)
+
     case "receive":
+        if *filePtr == "FILE" || *keyPtr == "KEY" || *signPtr == "SIGN" {
+            Usage()
+        }
+        var file []byte = inout.ReadFile(*filePtr)
+        var key []byte = inout.ReadFile(*keyPtr) 
+        var sign []byte = inout.ReadFile(*signPtr)
+        fmt.Printf("\nDecrypting with %s key AES key and decrypting and verifying \nwith %s the message in %s\n",*keyPtr,*signPtr,*filePtr)
+
+        Mess, Firm := receiveMessage(file,key,sign)
+        fmt.Printf("\nOutput: (%s, %s)\n", *namePtr, *signNamePtr)
+        inout.WriteFile(Mess,*namePtr)
+        inout.WriteFile(Firm,*signNamePtr)
     }
-
-
 }

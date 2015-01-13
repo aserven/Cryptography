@@ -1,9 +1,6 @@
-
-
 package main
 
 import (
-    "os"
     "fmt"
     "crypto"
     "crypto/rand"
@@ -13,132 +10,71 @@ import (
     "encoding/pem"
 )
 
-
-
-func sendMessage(file, keyRSA, signKey []byte) []byte {
-    
-    //var signed []byte = sign(file,key)
-    var signed2 []byte = signECDSA(file,signKey)
+/**
+ * Send Message
+ * Given a file, public RSA key and private EC key encrypts with AES the file with
+ * its signing using the private EC key and the AES key encrypted with the public 
+ * RSA key is added to the head
+ */
+func sendMessage(file, publicKeyRSA, signKeyEC []byte) []byte {
     
     var keyAES []byte = randomKey(16)
-
-    var M_F []byte = file
-    var E_M_F []byte = encrypt(append(M_F,signed2...),keyAES)
+    var signed []byte = signECDSA(file,signKeyEC)
+    var E_MF []byte = encrypt(append(file,signed...),keyAES)
     
-    //var ret bool = verify(file,sign,key)
-    /*var ret bool = verifyECDSA(file,signKey,keyECDS)
-    if ret {
-        fmt.Println("Signed correctly: True")
-    } else {
-        fmt.Println("Error signing: False")
-    }*/
-
-    // EncryptOAEP
-
-    //label := []byte("")
-    sha1hash := crypto.SHA1.New()
-
-    keyBlock2, _ := pem.Decode(keyRSA)
-
-    fmt.Printf("KEY PEM: %s\n",keyBlock2.Type)
-
-    publickey, _ := x509.ParsePKIXPublicKey(keyBlock2.Bytes)
-    
-    //var encryptedmsg []byte
-    fmt.Printf("OAEP Encryption : \n")
+    keyBlock, _ := pem.Decode(publicKeyRSA)
+    publickey, err := x509.ParsePKIXPublicKey(keyBlock.Bytes)
+    if err != nil {
+        panic(err)
+    }
+    var KSE_EMF []byte
     if pkeyRSA, ok := publickey.(*rsa.PublicKey); ok {
-        /* act on pkey */
-        //err = rsa.VerifyPSS(pkey, newhash, hashed, signature, &opts)
-        encryptedmsg, err := rsa.EncryptOAEP(sha1hash, rand.Reader, pkeyRSA, keyAES, nil)
+
+        sha1hash := crypto.SHA1.New()
+        encryptedKey, err := rsa.EncryptOAEP(sha1hash, rand.Reader, pkeyRSA, keyAES, nil)
         if err != nil {
-            fmt.Println(err)
-            os.Exit(1)
+           panic(err)
         }
+        KSE_EMF = append(encryptedKey,E_MF...)
 
-
-
-        fmt.Printf("OAEP encrypted [%# x] to \n[%# x]\n", string(keyAES), encryptedmsg)
-        fmt.Println(len(encryptedmsg))
-        fmt.Printf("FINAL [%d]\n", len(append(encryptedmsg,E_M_F...)))
-        return append(encryptedmsg,E_M_F...)
     } else {
-        /* not a RSA public key */
-        //encryptedmsg = make([]byte,2)
         errors.New("Public key is not an RSA key")
     }
-
-
-
-    // DecryptOAEP
-    /*
-    decryptedmsg, err := rsa.DecryptOAEP(sha1hash, rand.Reader, privatekey, encryptedmsg, label)
-
-    if err != nil {
-        fmt.Println(err)
-        os.Exit(1)
-    }
-
-    fmt.Printf("OAEP decrypted [%x] to \n[%s]\n",encryptedmsg, decryptedmsg)
-    fmt.Println()
-    */
-    return make([]byte,2)
+    return KSE_EMF
 }
 
-
-
-func receiveMessage(file, keyRSA, signKey []byte) ([]byte, []byte) {
+/**
+ * Receive Message
+ * Given an encrypted file, private RSA key and public EC key, decrypts the firsts
+ * 2048 bytes with the private RSA key to reveal the AES key and then decrypts
+ * the message with the signing and returns the pair
+ */
+func receiveMessage(file, privateKeyRSA, signKeyEC []byte) ([]byte, []byte) {
     
-    //var signed []byte = sign(file,key)
     var encKey []byte = file[:256]
-    
     var encMess []byte = file[256:]
 
-
-    keyBlock, _ := pem.Decode(keyRSA)
-
-    fmt.Printf("KEY PEM: %s\n",keyBlock.Type)
-
+    keyBlock, _ := pem.Decode(privateKeyRSA)
     privatekey, err := x509.ParsePKCS1PrivateKey(keyBlock.Bytes)
-
-    //var ret bool = verify(file,sign,key)
-    /*var ret bool = verifyECDSA(file,signKey,keyECDS)
-    if ret {
-        fmt.Println("Signed correctly: True")
-    } else {
-        fmt.Println("Error signing: False")
-    }*/
-
-    fmt.Printf("[%# x]\n",encKey)
-
-    //label := []byte("")
-    sha1hash := crypto.SHA1.New()
-
-    // DecryptOAEP
-    
-    decryptedKey, err := rsa.DecryptOAEP(sha1hash, rand.Reader, privatekey, encKey, nil)
-
     if err != nil {
-        fmt.Println(err)
-        os.Exit(1)
+        panic(err)
     }
-
-    fmt.Printf("OAEP decrypted [%x] to \n[%# x]\n",encKey, decryptedKey)
-    fmt.Println()
-
+    sha1hash := crypto.SHA1.New()
+    decryptedKey, err := rsa.DecryptOAEP(sha1hash, rand.Reader, privatekey, encKey, nil)
+    if err != nil {
+        panic(err)
+    }
     var decryptedMsg []byte = decrypt(encMess,decryptedKey)
 
     var messageOK []byte = decryptedMsg[:len(decryptedMsg)-64]
     var signOK []byte = decryptedMsg[len(decryptedMsg)-64:]
-    
 
-    fmt.Printf("KEY PEM: %# x\n", messageOK[:20])
-     var ret bool = verifyECDSA(messageOK,signOK,signKey)
-    if ret {
+    if verifyECDSA(messageOK,signOK,signKeyEC) {
         fmt.Println("Signed correctly: True")
     } else {
-        fmt.Println("Error signing: False")
+        fmt.Println("Signed correctly: False")
     }
-    return messageOK,signOK
+    return messageOK, signOK
 }
 
 
