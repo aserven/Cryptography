@@ -146,8 +146,14 @@ key and also the signature. With EC keys generates two big ints, each one has 25
 size of the signature is 64 bytes.
 
 ### 4. Send / Receive Message ###
-The function that sends a message is provided with the file, a public RSA key and a private EC
-key for signing purposes. 
+The function that sends a message is provided with the file, a public RSA key (2048 bits) and a private EC
+key (P256) for signing purposes. First, signs the file with the private EC key, then appends the signature to
+the file and encrypts all with AES with a previously generated random key of 16 bytes. The key used is encrypted 
+with the public RSA key and added as header.
+
+The function that receives the message does the inverse process. Given the encrypted file, a private RSA key and
+a public EC key, first takes the first 2048 bits and decrypts them with the private RSA key. Now decrypts the other
+part with the key and separates the message from the signature (Last 64 bytes).
 
 
 
