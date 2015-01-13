@@ -81,7 +81,10 @@ openssl rsa -in public.pem -pubin -text
 options: [curve] name of the curve
 
 curvas secp256, secp384 y secp521
+curvas secp256, secp384 y secp521
 generate 256, 384 and 521 curves
+
+```openssl ecparam -list_curves```
 
 ```
 openssl ec -in private.pem -text

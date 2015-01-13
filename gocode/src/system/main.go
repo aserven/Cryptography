@@ -33,13 +33,14 @@ func main() {
     signPtr := flag.Bool("sign", false, "Tell to sign file")
     verifyPtr := flag.Bool("verify", false, "Tell to verify file")
     sizePtr := flag.Int("size", 16, "Generates a random key of n bytes")
+    test := flag.Bool("test", false, "Test program")
 
     //Once all flags are declared, call flag.Parse() to execute the command-line parsing.
     flag.Parse()
 
     var incorrect bool = !*verifyPtr && !*signPtr && !*eccGenPtr && !*rsaGenPtr && !*randKeyPtr && *filePtr == "FILE" && *keyPtr == "KEY" && len(flag.Args()) == 0
 
-    if (*encPtr && *decPtr) || (!*verifyPtr && !*signPtr && !*eccGenPtr && !*rsaGenPtr && !*encPtr && !*decPtr && !*randKeyPtr) || incorrect {
+    if (!*test) && ((*encPtr && *decPtr) || (!*verifyPtr && !*signPtr && !*eccGenPtr && !*rsaGenPtr && !*encPtr && !*decPtr && !*randKeyPtr) || incorrect) {
         // FER EL PROPI
         flag.Usage()
         os.Exit(0)
@@ -57,6 +58,23 @@ func main() {
     var fileName string = *filePtr
     var keyName string = *keyPtr
     var outputFile string = *namePtr
+
+    var signName string = *signaturePtr
+    var file []byte = inout.ReadFile(fileName)
+    var key []byte = inout.ReadFile(keyName) 
+    var sign []byte = inout.ReadFile(signName)
+
+    //var result []byte = sendMessage(file,key,sign)
+
+    //inout.WriteFile(result,"FileENC.enc")
+    //fmt.Printf("RESULT: %# x\n%# x", result[:256],result[len(result)-64:])
+
+
+    Mess, Firm := receiveMessage(file,key,sign)
+
+    inout.WriteFile(Mess,"MissatgeENC.png")
+    inout.WriteFile(Firm,"FirmaENC.signature")
+
 
     //QUAN FA ENCODE FER DECODE I COMPROVAR QUE ESTA CORRECTE
     if *encPtr {
@@ -104,7 +122,7 @@ func main() {
         //nameVec := strings.Split(fileName, ".")
         //outFile := strings.Join(nameVec[0:len(nameVec)-1],"") + "SIGNED." + nameVec[len(nameVec)-1]
         //inout.WriteFile(signed,"testRSA.signature")
-        inout.WriteFile(signed2,"testECDS.signature")
+        inout.WriteFile(signed2,"testECDS2.signature")
         
     }else if *verifyPtr {
         var signName string = *signaturePtr
