@@ -25,12 +25,9 @@ To build the project use
 go install system
 ```
 
-System 
-
- - install places the binary in `bin`
- - builds places the binary as a package in `pkg`
-
-tree structure of the go project:
+System is the main directory that contains all rellevant files. The previous comand will create an
+executable file in `bin`called `system`. It will also generate another directory called `pkg` 
+where the package `inout` will be stored. An overview of the structure:
 
 ```
 .
@@ -38,12 +35,7 @@ tree structure of the go project:
 │   └── system
 ├── pkg
 │   └── darwin_amd64
-│       ├── crypto
-│       │   ├── keys.a
-│       │   ├── signature.a
-│       │   └── string.a
 │       └── inout.a
-│  
 └── src
     ├── inout
     │   └── inout.go
@@ -51,9 +43,14 @@ tree structure of the go project:
         ├── crypt.go
         ├── keys.go
         ├── main.go
+        ├── message.go
         └── signature.go
 ```
+* __`crypt.go`__: 
 
+
+### Usage ###
+'''
 USAGE:
 Usage of system:
   - d=false: Tell the program to decrypt the file
