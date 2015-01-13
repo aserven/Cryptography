@@ -19,13 +19,13 @@ Once installed, set the variable GOPATH to the main directory of the project
 export GOPATH="Your directory"/gocode
 ```
 
-
-comands to build project: 
+To build the project use
 
 ```bash
-go install DIRECTORY
-go build DIRECTORY
+go install system
 ```
+
+System 
 
  - install places the binary in `bin`
  - builds places the binary as a package in `pkg`
