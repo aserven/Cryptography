@@ -91,15 +91,12 @@ USAGE: system -action < ACTION >
 ### Examples of calls ###
 
 ```
-   system -action encrypt ../test/bits.jpg -key ../test/SecretKey 
    system -action encrypt -file ../test/bits.jpg -key ../test/SecretKey 
    system -action decrypt -file result.out -key ../test/SecretKey 
    system -action rsa
    system -action ec
    system -action sign -file ../test/bits.jpg -key privateEC.pem 
-   system -action verify -file result.out -key publicEC.pem 
    system -action verify -file ../test/bits.jpg -sign result.out -key publicEC.pem 
-   system -action send -file ../test/bits.jpg -key privateRSA.pem -sign privateEC.pem 
    system -action send -file ../test/bits.jpg -key publicRSA.pem -sign privateEC.pem -name bits.jpg.enc
    system -action receive -file bits.jpg.enc -key privateRSA.pem -sign publicEC.pem -name bitsOK.jpg -signName bits.jpg.signature
 ```
